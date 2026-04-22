@@ -13,6 +13,8 @@ Training workflow for Robot Vacuum.
 import os
 import time
 
+import random  # [新增] 导入随机数库
+
 import numpy as np
 
 from agent_ppo.conf.conf import Config
@@ -48,7 +50,7 @@ def workflow(envs, agents, logger=None, monitor=None, *args, **kwargs):
             g_data.clear()
 
             now = time.time()
-            if now - last_save_model_time >= 1800:
+            if now - last_save_model_time >= 600:
                 agent.save_model()
                 last_save_model_time = now
 
@@ -78,6 +80,13 @@ class EpisodeRunner:
                 self.last_get_training_metrics_time = now
                 if training_metrics is not None:
                     self.logger.info(f"training_metrics: {training_metrics}")
+
+            # ==========================================
+            # [新增] 环境域随机化 (Domain Randomization)
+            # ==========================================
+            # 每一局动态覆盖从 toml 读取的静态配置
+            self.usr_conf["env_conf"]["charger_count"] = random.randint(2, 3)
+            self.usr_conf["env_conf"]["battery_max"] = random.randint(150, 200)
 
             # Reset environment
             # 重置环境
@@ -138,12 +147,12 @@ class EpisodeRunner:
                         # Survived to max steps: higher cleaning ratio → more reward
                         # 存活到最大步数：清扫比例越高奖励越多
                         cleaning_ratio = fm.dirt_cleaned / max(fm.total_dirt, 1)
-                        final_reward = 5.0 + 5.0 * cleaning_ratio
+                        final_reward = 10.0 + 5.0 * cleaning_ratio
                         result_str = "WIN"
                     else:
                         # Early termination (battery depleted or collision): small penalty
                         # 提前结束（电量耗尽或碰撞）：小惩罚
-                        final_reward = -2.0
+                        final_reward = -5.0
                         result_str = "FAIL"
 
                     self.logger.info(

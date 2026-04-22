@@ -12,12 +12,13 @@ Configuration for Robot Vacuum PPO agent.
 
 
 class Config:
-
-    # Feature dimensions (69D)
-    # 特征维度（69D）
+    # 特征维度修改为 75D
+    # [0]: 441D 局部视野
+    # [1]: 18D 全局状态 (原12D + 新增6D充电桩/NPC/轨迹特征)
+    # [2]: 8D 合法动作
     FEATURES = [
-        7 * 7,
-        12,
+        3 * 21 * 21,  # [修改此处] 1323维 (3通道的 21x21 图像)
+        18,  # 修改此处：从 12 增加到 18
         8,
     ]
     FEATURE_SPLIT_SHAPE = FEATURES
